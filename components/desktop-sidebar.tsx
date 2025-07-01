@@ -30,7 +30,7 @@ export function DesktopSidebar({ user, currentPage, onNavigate }: DesktopSidebar
   const adminItems = [{ id: "admin" as Page, label: "Painel Admin", icon: Settings }]
 
   return (
-    <div className="hidden lg:flex lg:w-80 lg:flex-col lg:fixed lg:inset-y-0 lg:z-50 lg:bg-white lg:border-r lg:border-gray-200">
+    <div className="hidden lg:flex lg:w-80 lg:flex-col lg:fixed lg:inset-y-0 lg:z-40 lg:bg-white lg:border-r lg:border-gray-200 lg:pt-16">
       <div className="flex flex-col h-full">
         {/* User Section */}
         <div className="p-6 border-b">
@@ -71,7 +71,7 @@ export function DesktopSidebar({ user, currentPage, onNavigate }: DesktopSidebar
                 <Button
                   key={item.id}
                   variant={currentPage === item.id ? "secondary" : "ghost"}
-                  className="w-full justify-start"
+                  className="w-full justify-start min-h-[44px]"
                   onClick={() => onNavigate(item.id)}
                 >
                   <item.icon className="h-4 w-4 mr-3" />
@@ -90,7 +90,7 @@ export function DesktopSidebar({ user, currentPage, onNavigate }: DesktopSidebar
                 <Button
                   key={item.id}
                   variant={currentPage === item.id ? "secondary" : "ghost"}
-                  className="w-full justify-start"
+                  className="w-full justify-start min-h-[44px]"
                   onClick={() => onNavigate(item.id)}
                 >
                   <item.icon className="h-4 w-4 mr-3" />
@@ -109,7 +109,7 @@ export function DesktopSidebar({ user, currentPage, onNavigate }: DesktopSidebar
                 <Button
                   key={item.id}
                   variant={currentPage === item.id ? "secondary" : "ghost"}
-                  className="w-full justify-start"
+                  className="w-full justify-start min-h-[44px]"
                   onClick={() => onNavigate(item.id)}
                 >
                   <item.icon className="h-4 w-4 mr-3" />
@@ -122,11 +122,14 @@ export function DesktopSidebar({ user, currentPage, onNavigate }: DesktopSidebar
 
         {/* Footer */}
         <div className="p-4 border-t">
-          <Button variant="ghost" className="w-full justify-start mb-2">
+          <Button variant="ghost" className="w-full justify-start mb-2 min-h-[44px]">
             <HelpCircle className="h-4 w-4 mr-3" />
             Ajuda
           </Button>
-          <Button variant="ghost" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px]"
+          >
             <LogOut className="h-4 w-4 mr-3" />
             Sair
           </Button>

@@ -1,115 +1,156 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
-import { reimbursementAPI } from "@/lib/api/reimbursements"
-import type { Database } from "@/lib/supabase/types"
-
-type Reimbursement = Database["public"]["Tables"]["reimbursements"]["Row"]
-type ReimbursementFormData = Omit<Database["public"]["Tables"]["reimbursements"]["Insert"], "user_id" | "id">
+import type React from "react"
+import { createContext, useContext, useState, useCallback, useEffect } from "react"
+import type { Reimbursement } from "@/types"
 
 interface ReimbursementContextType {
   reimbursements: Reimbursement[]
   isLoading: boolean
-  createReimbursement: (data: ReimbursementFormData) => Promise<void>
-  updateReimbursementStatus: (id: string, status: string) => Promise<void>
-  uploadDocument: (reimbursementId: string, file: File, type: string) => Promise<void>
-  sendByEmail: (reimbursementId: string) => Promise<void>
-  downloadZip: (reimbursementId: string) => Promise<void>
+  error: string | null
   refreshReimbursements: () => Promise<void>
+  updateReimbursementStatus: (id: string, status: string) => Promise<void>
+  addReimbursement: (reimbursement: Omit<Reimbursement, "id">) => Promise<void>
+  deleteReimbursement: (id: string) => Promise<void>
 }
 
 const ReimbursementContext = createContext<ReimbursementContextType | undefined>(undefined)
 
-export function ReimbursementProvider({ children }: { children: ReactNode }) {
+// Mock data para preview
+const mockReimbursements: Reimbursement[] = [
+  {
+    id: "1",
+    type: "Consulta Cardiologista",
+    patient: "João Silva",
+    value: 350,
+    date: "2024-01-15",
+    status: "documentos",
+    plan: "Unimed",
+    documents: 2,
+    totalDocuments: 3,
+  },
+  {
+    id: "2",
+    type: "Exame de Sangue",
+    patient: "Maria Silva",
+    value: 120,
+    date: "2024-01-14",
+    status: "pronto",
+    plan: "Bradesco",
+    documents: 3,
+    totalDocuments: 3,
+  },
+  {
+    id: "3",
+    type: "Fisioterapia",
+    patient: "João Silva",
+    value: 80,
+    date: "2024-01-13",
+    status: "aprovado",
+    plan: "Unimed",
+    documents: 2,
+    totalDocuments: 2,
+  },
+  {
+    id: "4",
+    type: "Consulta Dermatologista",
+    patient: "Ana Silva",
+    value: 200,
+    date: "2024-01-12",
+    status: "pago",
+    plan: "Amil",
+    documents: 3,
+    totalDocuments: 3,
+  },
+  {
+    id: "5",
+    type: "Exame de Vista",
+    patient: "Pedro Silva",
+    value: 150,
+    date: "2024-01-11",
+    status: "enviado",
+    plan: "Unimed",
+    documents: 2,
+    totalDocuments: 2,
+  },
+]
+
+export function ReimbursementProvider({ children }: { children: React.ReactNode }) {
   const [reimbursements, setReimbursements] = useState<Reimbursement[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const createReimbursement = async (data: ReimbursementFormData) => {
+  const refreshReimbursements = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+
     try {
-      setIsLoading(true)
-      const newReimbursement = await reimbursementAPI.create(data)
-      setReimbursements((prev) => [newReimbursement, ...prev])
+      // Simular delay de rede
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // Tracking de conversão
-      if (typeof window !== "undefined" && window.fbq) {
-        window.fbq("track", "InitiateCheckout")
-      }
-    } catch (error) {
-      throw new Error("Erro ao criar reembolso")
+      // Em produção, aqui seria uma chamada real para a API
+      setReimbursements(mockReimbursements)
+    } catch (err) {
+      setError("Erro ao carregar reembolsos")
+      console.error("Erro ao carregar reembolsos:", err)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  const updateReimbursementStatus = async (id: string, status: string) => {
+  const updateReimbursementStatus = useCallback(async (id: string, status: string) => {
     try {
-      await reimbursementAPI.updateStatus(id, status)
+      // Simular delay de rede
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
       setReimbursements((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)))
-    } catch (error) {
-      throw new Error("Erro ao atualizar status")
+    } catch (err) {
+      setError("Erro ao atualizar status")
+      console.error("Erro ao atualizar status:", err)
+      throw err
     }
-  }
+  }, [])
 
-  const uploadDocument = async (reimbursementId: string, file: File, type: string) => {
+  const addReimbursement = useCallback(async (reimbursement: Omit<Reimbursement, "id">) => {
     try {
-      await reimbursementAPI.uploadDocument(reimbursementId, file, type)
-    } catch (error) {
-      throw new Error("Erro ao fazer upload do documento")
-    }
-  }
+      const newReimbursement: Reimbursement = {
+        ...reimbursement,
+        id: Date.now().toString(),
+      }
 
-  const sendByEmail = async (reimbursementId: string) => {
+      setReimbursements((prev) => [...prev, newReimbursement])
+    } catch (err) {
+      setError("Erro ao adicionar reembolso")
+      console.error("Erro ao adicionar reembolso:", err)
+      throw err
+    }
+  }, [])
+
+  const deleteReimbursement = useCallback(async (id: string) => {
     try {
-      await reimbursementAPI.sendByEmail(reimbursementId)
-    } catch (error) {
-      throw new Error("Erro ao enviar por email")
+      setReimbursements((prev) => prev.filter((r) => r.id !== id))
+    } catch (err) {
+      setError("Erro ao excluir reembolso")
+      console.error("Erro ao excluir reembolso:", err)
+      throw err
     }
+  }, [])
+
+  useEffect(() => {
+    refreshReimbursements()
+  }, [refreshReimbursements])
+
+  const value: ReimbursementContextType = {
+    reimbursements,
+    isLoading,
+    error,
+    refreshReimbursements,
+    updateReimbursementStatus,
+    addReimbursement,
+    deleteReimbursement,
   }
 
-  const downloadZip = async (reimbursementId: string) => {
-    try {
-      const zipBlob = await reimbursementAPI.downloadZip(reimbursementId)
-
-      // Download automático
-      const url = window.URL.createObjectURL(zipBlob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `reembolso_${reimbursementId}.zip`
-      a.click()
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      throw new Error("Erro ao baixar arquivos")
-    }
-  }
-
-  const refreshReimbursements = async () => {
-    try {
-      setIsLoading(true)
-      const data = await reimbursementAPI.getAll()
-      setReimbursements(data)
-    } catch (error) {
-      console.error("Erro ao carregar reembolsos:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  return (
-    <ReimbursementContext.Provider
-      value={{
-        reimbursements,
-        isLoading,
-        createReimbursement,
-        updateReimbursementStatus,
-        uploadDocument,
-        sendByEmail,
-        downloadZip,
-        refreshReimbursements,
-      }}
-    >
-      {children}
-    </ReimbursementContext.Provider>
-  )
+  return <ReimbursementContext.Provider value={value}>{children}</ReimbursementContext.Provider>
 }
 
 export function useReimbursement() {

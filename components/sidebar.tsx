@@ -1,10 +1,11 @@
 "use client"
 
-import { X, Home, Clipboard, Plus, Shield, User, Key, CreditCard, HelpCircle, LogOut } from "lucide-react"
+import { X, Home, Clipboard, Plus, Shield, User, Key, CreditCard, HelpCircle, LogOut, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet"
 import type { Page } from "@/app/page"
 
 interface SidebarProps {
@@ -29,27 +30,30 @@ export function Sidebar({ isOpen, onClose, user, currentPage, onNavigate }: Side
     { id: "billing" as Page, label: "Plano & Cobrança", icon: CreditCard },
   ]
 
-  if (!isOpen) return null
+  const adminItems = [{ id: "admin" as Page, label: "Painel Admin", icon: Settings }]
 
   return (
-    <>
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={onClose} />
-
-      {/* Sidebar */}
-      <div className="fixed top-0 left-0 h-full w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out">
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent side="left" className="w-80 p-0">
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-lg font-semibold">Menu</h2>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
+          <SheetHeader className="p-6 border-b bg-gradient-to-r from-blue-50 to-purple-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">R</span>
+                </div>
+                <h2 className="text-lg font-bold text-gray-900">ReembolsoAI</h2>
+              </div>
+              <Button variant="ghost" size="icon" onClick={onClose} className="min-h-[44px] min-w-[44px]">
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </SheetHeader>
 
           {/* User Section */}
-          <div className="p-4 border-b">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="p-6 border-b">
+            <div className="flex items-center gap-3 mb-4">
               <Avatar>
                 <AvatarImage src={user.avatar || "/placeholder.svg"} />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
@@ -60,7 +64,7 @@ export function Sidebar({ isOpen, onClose, user, currentPage, onNavigate }: Side
               </div>
             </div>
 
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <Badge variant={user.plan === "pro" ? "default" : "secondary"}>
                 {user.plan === "pro" ? "Pro" : "Gratuito"}
               </Badge>
@@ -86,7 +90,7 @@ export function Sidebar({ isOpen, onClose, user, currentPage, onNavigate }: Side
                   <Button
                     key={item.id}
                     variant={currentPage === item.id ? "secondary" : "ghost"}
-                    className="w-full justify-start"
+                    className="w-full justify-start min-h-[44px]"
                     onClick={() => onNavigate(item.id)}
                   >
                     <item.icon className="h-4 w-4 mr-3" />
@@ -105,7 +109,26 @@ export function Sidebar({ isOpen, onClose, user, currentPage, onNavigate }: Side
                   <Button
                     key={item.id}
                     variant={currentPage === item.id ? "secondary" : "ghost"}
-                    className="w-full justify-start"
+                    className="w-full justify-start min-h-[44px]"
+                    onClick={() => onNavigate(item.id)}
+                  >
+                    <item.icon className="h-4 w-4 mr-3" />
+                    {item.label}
+                  </Button>
+                ))}
+              </nav>
+            </div>
+
+            <Separator />
+
+            <div className="p-4">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Administração</h3>
+              <nav className="space-y-1">
+                {adminItems.map((item) => (
+                  <Button
+                    key={item.id}
+                    variant={currentPage === item.id ? "secondary" : "ghost"}
+                    className="w-full justify-start min-h-[44px]"
                     onClick={() => onNavigate(item.id)}
                   >
                     <item.icon className="h-4 w-4 mr-3" />
@@ -118,17 +141,20 @@ export function Sidebar({ isOpen, onClose, user, currentPage, onNavigate }: Side
 
           {/* Footer */}
           <div className="p-4 border-t">
-            <Button variant="ghost" className="w-full justify-start mb-2">
+            <Button variant="ghost" className="w-full justify-start mb-2 min-h-[44px]">
               <HelpCircle className="h-4 w-4 mr-3" />
               Ajuda
             </Button>
-            <Button variant="ghost" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px]"
+            >
               <LogOut className="h-4 w-4 mr-3" />
               Sair
             </Button>
           </div>
         </div>
-      </div>
-    </>
+      </SheetContent>
+    </Sheet>
   )
 }

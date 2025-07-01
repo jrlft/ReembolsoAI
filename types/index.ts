@@ -6,68 +6,47 @@ export interface User {
   plan: "free" | "pro"
   reimbursementsUsed: number
   reimbursementsLimit: number
-  hasHealthPlan: boolean
-}
-
-export interface HealthPlan {
-  id: string
-  name: string
-  provider: string
-  cardNumber: string
-  userId: string
-}
-
-export interface Dependent {
-  id: string
-  name: string
-  relationship: string
-  birthDate: string
-  userId: string
-}
-
-export interface ReimbursementType {
-  id: string
-  name: string
-  category: string
-  subcategory?: string
-  description: string
-  active: boolean
-  requiredDocuments: string[]
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Reimbursement {
   id: string
   type: string
   patient: string
-  date: string
   value: number
-  status: "iniciar" | "documentos" | "pronto" | "enviado" | "complementar" | "aprovado" | "reprovado" | "pago"
+  date: string
+  status: string
   plan: string
-  documents: Document[]
-  createdAt: string
-  updatedAt: string
+  documents?: number
+  totalDocuments?: number
+  description?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface HealthPlan {
+  id: string
+  name: string
+  logo?: string
+  requirements: string[]
+  documentTypes: string[]
 }
 
 export interface Document {
   id: string
   name: string
   type: string
-  url: string
   size: number
+  url: string
+  reimbursementId: string
   uploadedAt: string
 }
 
-export interface ReimbursementFormData {
-  type: string
-  patient: string
-  date: string
-  value: number
-  plan: string
-  description?: string
-}
-
-export interface APIResponse<T> {
-  data: T
-  message: string
-  success: boolean
+export interface ReimbursementType {
+  id: string
+  name: string
+  category: string
+  requiredDocuments: string[]
+  maxValue?: number
 }

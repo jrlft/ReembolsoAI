@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { Search, Filter, Plus, MoreHorizontal, Calendar, DollarSign } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, Suspense } from "react"
+import { Plus, MoreHorizontal, Calendar, DollarSign } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { KanbanBoard } from "@/components/kanban/kanban-board"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import type { Page } from "@/app/page"
 
 interface ReimbursementBoardProps {
@@ -86,81 +86,20 @@ export function ReimbursementBoard({ user, onNavigate }: ReimbursementBoardProps
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold">Gestão de Reembolsos</h1>
-        <Button onClick={() => onNavigate("new-reimbursement")}>
+        <div>
+          <h1 className="text-2xl font-bold">Gestão de Reembolsos</h1>
+          <p className="text-gray-600">Acompanhe o status dos seus reembolsos</p>
+        </div>
+        <Button onClick={() => onNavigate("new-reimbursement")} className="min-h-[44px]">
           <Plus className="h-4 w-4 mr-2" />
           Novo Reembolso
         </Button>
       </div>
 
-      {/* Filtros */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Buscar reembolsos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={selectedPlan} onValueChange={setSelectedPlan}>
-              <SelectTrigger>
-                <SelectValue placeholder="Plano de saúde" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os planos</SelectItem>
-                <SelectItem value="unimed">Unimed</SelectItem>
-                <SelectItem value="bradesco">Bradesco</SelectItem>
-                <SelectItem value="amil">Amil</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={selectedDependent} onValueChange={setSelectedDependent}>
-              <SelectTrigger>
-                <SelectValue placeholder="Dependente" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="joao">João Silva</SelectItem>
-                <SelectItem value="maria">Maria Silva</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtros
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Kanban Board */}
-      <div className="overflow-x-auto">
-        <div className="flex gap-4 pb-4" style={{ minWidth: "1400px" }}>
-          {columns.map((column) => (
-            <div key={column.id} className="flex-shrink-0 w-80">
-              <Card className={`${column.color} border-0`}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium">{column.title}</CardTitle>
-                    <Badge variant="secondary" className="text-xs">
-                      {column.count}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {getReimbursementsByStatus(column.id).map((reimbursement) => (
-                    <ReimbursementCard key={reimbursement.id} reimbursement={reimbursement} />
-                  ))}
-                  {column.id === "documentos" && <ReimbursementCard reimbursement={reimbursements[0]} />}
-                  {column.id === "aprovado" && <ReimbursementCard reimbursement={reimbursements[2]} />}
-                </CardContent>
-              </Card>
-            </div>
-          ))}
-        </div>
-      </div>
+      <Suspense fallback={<LoadingSpinner size="lg" className="py-12" />}>
+        <KanbanBoard />
+      </Suspense>
     </div>
   )
 }

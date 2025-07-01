@@ -1,11 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd"
 import { useReimbursement } from "@/contexts/reimbursement-context"
 import { KanbanColumn } from "./kanban-column"
 import { KanbanCard } from "./kanban-card"
 import { KanbanFilters } from "./kanban-filters"
+import { MobileKanban } from "./mobile-kanban"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import type { Reimbursement } from "@/types"
 
 const COLUMNS = [
@@ -19,7 +21,7 @@ const COLUMNS = [
 ] as const
 
 export function KanbanBoard() {
-  const { reimbursements, updateReimbursementStatus, refreshReimbursements } = useReimbursement()
+  const { reimbursements, updateReimbursementStatus, refreshReimbursements, isLoading } = useReimbursement()
   const [filteredReimbursements, setFilteredReimbursements] = useState<Reimbursement[]>([])
   const [filters, setFilters] = useState({
     search: "",
@@ -56,7 +58,6 @@ export function KanbanBoard() {
   const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result
 
-    // Se não há destino ou se o item foi solto na mesma posição
     if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
       return
     }
@@ -64,18 +65,20 @@ export function KanbanBoard() {
     try {
       await updateReimbursementStatus(draggableId, destination.droppableId)
 
-      // Tracking de conversão para status importantes
       if (destination.droppableId === "pago" && typeof window !== "undefined" && window.fbq) {
         window.fbq("track", "Purchase", { value: 0, currency: "BRL" })
       }
     } catch (error) {
       console.error("Erro ao atualizar status:", error)
-      // TODO: Mostrar toast de erro
     }
   }
 
   const getReimbursementsByStatus = (status: string) => {
     return filteredReimbursements.filter((r) => r.status === status)
+  }
+
+  if (isLoading) {
+    return <LoadingSpinner />
   }
 
   return (
@@ -89,48 +92,55 @@ export function KanbanBoard() {
       </div>
 
       {/* Filtros */}
-      <KanbanFilters filters={filters} onFiltersChange={setFilters} />
+      <Suspense fallback={<div className="h-20 bg-gray-100 rounded-lg animate-pulse" />}>
+        <KanbanFilters filters={filters} onFiltersChange={setFilters} />
+      </Suspense>
 
-      {/* Kanban Board */}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="overflow-x-auto pb-4">
-          <div className="flex gap-4 min-w-max" style={{ minWidth: "1400px" }}>
-            {COLUMNS.map((column) => {
-              const columnReimbursements = getReimbursementsByStatus(column.id)
+      {/* Mobile Kanban */}
+      <MobileKanban reimbursements={filteredReimbursements} onRefresh={refreshReimbursements} />
 
-              return (
-                <Droppable key={column.id} droppableId={column.id}>
-                  {(provided, snapshot) => (
-                    <KanbanColumn
-                      title={column.title}
-                      count={columnReimbursements.length}
-                      color={column.color}
-                      isDraggedOver={snapshot.isDraggingOver}
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                    >
-                      {columnReimbursements.map((reimbursement, index) => (
-                        <Draggable key={reimbursement.id} draggableId={reimbursement.id} index={index}>
-                          {(provided, snapshot) => (
-                            <KanbanCard
-                              reimbursement={reimbursement}
-                              isDragging={snapshot.isDragging}
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                            />
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </KanbanColumn>
-                  )}
-                </Droppable>
-              )
-            })}
+      {/* Desktop Kanban */}
+      <div className="hidden lg:block">
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="overflow-x-auto pb-4">
+            <div className="flex gap-4 min-w-max" style={{ minWidth: "1400px" }}>
+              {COLUMNS.map((column) => {
+                const columnReimbursements = getReimbursementsByStatus(column.id)
+
+                return (
+                  <Droppable key={column.id} droppableId={column.id}>
+                    {(provided, snapshot) => (
+                      <KanbanColumn
+                        title={column.title}
+                        count={columnReimbursements.length}
+                        color={column.color}
+                        isDraggedOver={snapshot.isDraggingOver}
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                      >
+                        {columnReimbursements.map((reimbursement, index) => (
+                          <Draggable key={reimbursement.id} draggableId={reimbursement.id} index={index}>
+                            {(provided, snapshot) => (
+                              <KanbanCard
+                                reimbursement={reimbursement}
+                                isDragging={snapshot.isDragging}
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                              />
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </KanbanColumn>
+                    )}
+                  </Droppable>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      </DragDropContext>
+        </DragDropContext>
+      </div>
     </div>
   )
 }

@@ -1,12 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { useAuth } from "@/contexts/auth-context"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
-import { Sidebar } from "@/components/sidebar"
+import { DesktopSidebar } from "@/components/desktop-sidebar"
 import { Dashboard } from "@/components/dashboard"
 import { ReimbursementBoard } from "@/components/reimbursement-board"
-import { FreemiumBanner } from "@/components/freemium-banner"
 import { NewReimbursementForm } from "@/components/new-reimbursement-form"
 import { PlansPage } from "@/components/plans-page"
 import { ProfilePage } from "@/components/profile-page"
@@ -14,13 +12,10 @@ import { PasswordPage } from "@/components/password-page"
 import { BillingPage } from "@/components/billing-page"
 import { HelpPage } from "@/components/help-page"
 import { AdminDashboard } from "@/components/admin/admin-dashboard"
-import { AdminUsers } from "@/components/admin/admin-users"
-import { AdminDependents } from "@/components/admin/admin-dependents"
-import { AdminReimbursementTypes } from "@/components/admin/admin-reimbursement-types"
-import { AdminDocumentTypes } from "@/components/admin/admin-document-types"
-import { AdminRequirements } from "@/components/admin/admin-requirements"
-import { DesktopSidebar } from "@/components/desktop-sidebar"
 import { LoginPage } from "@/components/auth/login-page"
+import { MobileDrawer } from "@/components/layout/mobile-drawer"
+import { AuthProvider } from "@/contexts/auth-context"
+import { ReimbursementProvider } from "@/contexts/reimbursement-context"
 
 export type Page =
   | "dashboard"
@@ -31,27 +26,47 @@ export type Page =
   | "password"
   | "billing"
   | "help"
-  | "upgrade"
   | "admin"
-  | "admin-users"
-  | "admin-dependents"
-  | "admin-reimbursement-types"
-  | "admin-document-types"
-  | "admin-requirements"
-
-export interface User {
-  name: string
-  email: string
-  avatar: string
-  plan: "free" | "pro"
-  reimbursementsUsed: number
-  reimbursementsLimit: number
-}
+  | "upgrade"
 
 export default function App() {
-  const { user, isLoading } = useAuth()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState<Page>("dashboard")
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Mock user data
+  const user = {
+    id: "1",
+    name: "João Silva",
+    email: "joao@email.com",
+    avatar: "/placeholder.svg?height=40&width=40",
+    plan: "free" as const,
+    role: "user" as const,
+  }
+
+  useEffect(() => {
+    // Simulate auth check
+    const timer = setTimeout(() => {
+      setIsAuthenticated(true)
+      setIsLoading(false)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  const handleLogin = () => {
+    setIsAuthenticated(true)
+  }
+
+  const handleNavigate = (page: Page) => {
+    setCurrentPage(page)
+    setIsMobileMenuOpen(false)
+  }
+
+  const handleTitleClick = () => {
+    setCurrentPage("dashboard")
+  }
 
   if (isLoading) {
     return (
@@ -61,73 +76,57 @@ export default function App() {
     )
   }
 
-  if (!user) {
-    return <LoginPage />
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={handleLogin} />
   }
 
   const renderPage = () => {
     switch (currentPage) {
       case "dashboard":
-        return <Dashboard user={user} onNavigate={setCurrentPage} />
+        return <Dashboard />
       case "reimbursements":
-        return <ReimbursementBoard user={user} onNavigate={setCurrentPage} />
+        return <ReimbursementBoard />
       case "new-reimbursement":
-        return <NewReimbursementForm user={user} onNavigate={setCurrentPage} />
+        return <NewReimbursementForm />
       case "plans":
       case "upgrade":
-        return <PlansPage user={user} onNavigate={setCurrentPage} />
+        return <PlansPage />
       case "profile":
-        return <ProfilePage user={user} onNavigate={setCurrentPage} />
+        return <ProfilePage />
       case "password":
-        return <PasswordPage user={user} onNavigate={setCurrentPage} />
+        return <PasswordPage />
       case "billing":
-        return <BillingPage user={user} onNavigate={setCurrentPage} />
+        return <BillingPage />
       case "help":
-        return <HelpPage user={user} onNavigate={setCurrentPage} />
+        return <HelpPage />
       case "admin":
-        return <AdminDashboard user={user} onNavigate={setCurrentPage} />
-      case "admin-users":
-        return <AdminUsers user={user} onNavigate={setCurrentPage} />
-      case "admin-dependents":
-        return <AdminDependents user={user} onNavigate={setCurrentPage} />
-      case "admin-reimbursement-types":
-        return <AdminReimbursementTypes user={user} onNavigate={setCurrentPage} />
-      case "admin-document-types":
-        return <AdminDocumentTypes user={user} onNavigate={setCurrentPage} />
-      case "admin-requirements":
-        return <AdminRequirements user={user} onNavigate={setCurrentPage} />
+        return <AdminDashboard />
       default:
-        return <Dashboard user={user} onNavigate={setCurrentPage} />
+        return <Dashboard />
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      <Header
-        onMenuClick={() => setSidebarOpen(true)}
-        onTitleClick={() => setCurrentPage("dashboard")}
-        notificationCount={3}
-      />
+    <AuthProvider>
+      <ReimbursementProvider>
+        <div className="min-h-screen bg-gray-50">
+          <Header onMenuClick={() => setIsMobileMenuOpen(true)} onTitleClick={handleTitleClick} notificationCount={3} />
 
-      {/* Desktop Sidebar */}
-      <DesktopSidebar user={user} currentPage={currentPage} onNavigate={setCurrentPage} />
+          <DesktopSidebar user={user} currentPage={currentPage} onNavigate={handleNavigate} />
 
-      {/* Mobile Sidebar */}
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        user={user}
-        currentPage={currentPage}
-        onNavigate={(page) => {
-          setCurrentPage(page)
-          setSidebarOpen(false)
-        }}
-      />
+          <MobileDrawer
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
+            user={user}
+            currentPage={currentPage}
+            onNavigate={handleNavigate}
+          />
 
-      <main className="pt-16 px-4 pb-6 max-w-7xl mx-auto lg:ml-80">
-        {user.plan === "free" && <FreemiumBanner user={user} onUpgrade={() => setCurrentPage("upgrade")} />}
-        {renderPage()}
-      </main>
-    </div>
+          <main className="lg:pl-80 pt-16">
+            <div className="p-4 lg:p-8">{renderPage()}</div>
+          </main>
+        </div>
+      </ReimbursementProvider>
+    </AuthProvider>
   )
 }
