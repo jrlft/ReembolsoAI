@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,7 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
-import { Eye, EyeOff, Mail, Lock } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react"
+import Link from "next/link"
 
 export function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -45,13 +45,21 @@ export function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
+        {/* Back to Landing */}
+        <div className="text-center">
+          <Link href="/landing" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar para página inicial
+          </Link>
+        </div>
+
         {/* Logo */}
         <div className="text-center">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-2xl">R</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">ReembolsoFácil</h1>
-          <p className="text-gray-600 mt-2">Gestão inteligente de reembolsos médicos</p>
+          <h1 className="text-3xl font-bold text-gray-900">ReembolsoAI</h1>
+          <p className="text-gray-600 mt-2">Sistema de reembolso inteligente</p>
         </div>
 
         {/* Form */}
@@ -122,7 +130,11 @@ export function LoginPage() {
                 </Alert>
               )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                disabled={isLoading}
+              >
                 {isLoading ? "Carregando..." : isLogin ? "Entrar" : "Criar conta"}
               </Button>
             </form>
